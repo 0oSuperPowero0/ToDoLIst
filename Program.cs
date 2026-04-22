@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Runtime.ConstrainedExecution;
+using System.Text.Json;
 
 namespace TodoList;
 
@@ -13,7 +14,7 @@ class Program
 {
 	static void Main(string[] args)
 	{
-		List<TodoItem> todoList = new List<TodoItem>(); //Es ist viel besser, jede Aufgabe in ein Object umzuwandeln.
+		List<TodoItem> todoList = LoadTodo(); //json file
 		bool start = true;
 		
 		static void AddTodo(List<TodoItem> todoList) //Methode
@@ -34,9 +35,121 @@ class Program
 					TodoText = aufgaben,
 					IsDone = false
 				});
+				SaveTodo(todoList);
 				Console.WriteLine("ToDo wurde hinzugefügt.");
 			}
 			Console.ReadKey();
+		}
+		static void DeleteTodo(List<TodoItem> todoList)
+		{
+			Console.Clear();
+			for (int i = 0; i < todoList.Count; i++)
+			{
+				string status = todoList[i].IsDone ? "[x]" : "[ ]";
+				Console.WriteLine($"Nr.{i + 1} {status} {todoList[i].TodoText}");
+			}
+
+			Console.Write("Zu löschende Nr.: ");
+			if (int.TryParse(Console.ReadLine(), out int nummer))
+			{
+				//Bereichsprüfung beim Löschen
+				if (nummer >= 1 && nummer <= todoList.Count)
+				{
+					todoList.RemoveAt(nummer - 1);
+					SaveTodo(todoList);
+					Console.WriteLine("Todo wurde gelöscht");
+				}
+				else
+				{
+					Console.WriteLine("ungültige Nummmer.");
+				}
+			}
+			else
+			{
+				Console.WriteLine("Bitte eine gültige Nummer eingeben.");
+			}
+			Console.ReadKey();
+		}
+		static void FinishTodo(List<TodoItem> todoList)
+		{
+			Console.Clear();
+			for (int i = 0; i < todoList.Count; i++)
+			{
+				string status = todoList[i].IsDone ? "[x]" : "[ ]";
+				Console.WriteLine($"Nr.{i + 1} {status} {todoList[i].TodoText}");
+			}
+			Console.Write("Erledigte Nr.: ");
+
+			if (int.TryParse(Console.ReadLine(), out int nummer))
+			{
+				if (nummer >= 1 && nummer <= todoList.Count)
+				{
+					todoList[nummer - 1].IsDone = true;
+					SaveTodo(todoList);
+					Console.WriteLine("Todo wurde als erledigt markiert.");
+				}
+				else
+				{
+					Console.WriteLine("ungültige Nummer.");
+				}
+			}
+			else
+			{
+				Console.WriteLine("Bitte eine gültige Nummer eingeben.");
+			}
+		}
+		static void NotFinishTodo(List<TodoItem> todoList) 
+		{
+			Console.Clear();
+			for (int i = 0; i < todoList.Count; i++)
+			{
+				string status = todoList[i].IsDone ? "[x]" : "[ ]";
+				Console.WriteLine($"Nr.{i + 1} {status} {todoList[i].TodoText}");
+			}
+			Console.Write("Unerledigte Nr.: ");
+
+			if (int.TryParse(Console.ReadLine(), out int nummer))
+			{
+				if (nummer >= 1 && nummer <= todoList.Count)
+				{
+					todoList[nummer - 1].IsDone = false;
+					SaveTodo(todoList);
+					Console.WriteLine("Todo wurde als unerledigt markiert.");
+				}
+				else
+				{
+					Console.WriteLine("ungültige Nummer.");
+				}
+			}
+			else
+			{
+				Console.WriteLine("Bitte eine gültige Nummer eingeben.");
+			}
+		}
+		static void SaveTodo(List<TodoItem> todoList) //json serialize
+		{
+			string filePath = "todolist.json";
+
+			// Objekt -> string JsonSerializerOptions steurt das Serialisierungs-/Deserialisierungsverhalten von JSON
+			string json = JsonSerializer.Serialize(todoList, new JsonSerializerOptions
+			{
+				WriteIndented = true //white space
+			}); 
+			File.WriteAllText(filePath, json);
+		}
+		static List<TodoItem> LoadTodo()
+		{
+			string filePath = "todolist.json";
+
+			if (!File.Exists(filePath))
+			{
+				return new List<TodoItem>();
+			}
+			string json = File.ReadAllText(filePath);
+
+			List<TodoItem>? loadedList = JsonSerializer.Deserialize<List<TodoItem>>(json);
+
+			return loadedList ?? new List<TodoItem>();
 		}
 
 		while (start)
@@ -103,86 +216,15 @@ class Program
 							}
 							else if (auswahl2 == 2)
 							{
-								Console.Clear();
-								for (int i = 0; i < todoList.Count; i++)
-								{
-									string status = todoList[i].IsDone ? "[x]" : "[ ]";
-									Console.WriteLine($"Nr.{i + 1} {status} {todoList[i].TodoText}");
-								}
-
-								Console.Write("Zu löschende Nr.: ");
-								if (int.TryParse(Console.ReadLine(), out int nummer))
-								{
-									//Bereichsprüfung beim Löschen
-									if (nummer >= 1 && nummer <= todoList.Count)
-									{
-										todoList.RemoveAt(nummer - 1);
-										Console.WriteLine("Todo wurde gelöscht");
-									}
-									else
-									{
-										Console.WriteLine("ungültige Nummmer.");
-									}
-								}
-								else
-								{
-									Console.WriteLine("Bitte eine gültige Nummer eingeben.");
-								}
-								Console.ReadKey();
+								DeleteTodo(todoList);
 							}
 							else if (auswahl2 == 3)
 							{
-								Console.Clear();
-								for(int i = 0; i < todoList.Count; i++)
-								{
-									string status = todoList[i].IsDone ? "[x]" : "[ ]";
-									Console.WriteLine($"Nr.{i + 1} {status} {todoList[i].TodoText}");
-								}
-								Console.Write("Erledigte Nr.: ");
-
-								if(int.TryParse(Console.ReadLine(), out int nummer))
-								{
-									if(nummer >= 1 && nummer <= todoList.Count)
-									{
-										todoList[nummer -1].IsDone = true;
-										Console.WriteLine("Todo wurde als erledigt markiert.");
-									}
-									else
-									{
-										Console.WriteLine("ungültige Nummer.");
-									}
-								}
-								else
-								{
-									Console.WriteLine("Bitte eine gültige Nummer eingeben.");
-								}
+								FinishTodo(todoList);
 							}
 							else if (auswahl2 == 4)
 							{
-								Console.Clear();
-								for (int i = 0; i < todoList.Count; i++)
-								{
-									string status = todoList[i].IsDone ? "[x]" : "[ ]";
-									Console.WriteLine($"Nr.{i + 1} {status} {todoList[i].TodoText}");
-								}
-								Console.Write("Unerledigte Nr.: ");
-
-								if (int.TryParse(Console.ReadLine(), out int nummer))
-								{
-									if (nummer >= 1 && nummer <= todoList.Count)
-									{
-										todoList[nummer - 1].IsDone = false;
-										Console.WriteLine("Todo wurde als unerledigt markiert.");
-									}
-									else
-									{
-										Console.WriteLine("ungültige Nummer.");
-									}
-								}
-								else
-								{
-									Console.WriteLine("Bitte eine gültige Nummer eingeben.");
-								}
+								NotFinishTodo(todoList);
 							}
 							else if (auswahl2 == 0)
 							{
