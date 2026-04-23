@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Runtime.ConstrainedExecution;
 using System.Text.Json;
 
 namespace TodoList;
@@ -12,11 +11,15 @@ namespace TodoList;
 
 class Program
 {
+	// Gemeinsamer Dateiname für Speichern und Laden
+	const string FilePath = "todolist.json";
+	// class field -> static local function capture it
 	static void Main(string[] args)
-	{
+	{		
 		List<TodoItem> todoList = LoadTodo(); //json file
 		bool start = true;
-		
+
+		// static // Gemeinsame Funktion, die keine Objektzustände, sondern Eingabewerte verarbeitet
 		static void AddTodo(List<TodoItem> todoList) //Methode
 		{
 			Console.Clear();
@@ -43,10 +46,20 @@ class Program
 		static void DeleteTodo(List<TodoItem> todoList)
 		{
 			Console.Clear();
-			for (int i = 0; i < todoList.Count; i++)
+			//Funktionen zum Löschen/Abschließen schützen, wenn die Liste leer ist (für Sicherheit)
+			if (todoList.Count == 0)
 			{
-				string status = todoList[i].IsDone ? "[x]" : "[ ]";
-				Console.WriteLine($"Nr.{i + 1} {status} {todoList[i].TodoText}");
+				Console.WriteLine("Keine ToDos vorhanden...\n");
+				Console.ReadKey();
+				return;
+			}
+			else
+			{
+				for (int i = 0; i < todoList.Count; i++)
+				{
+					string status = todoList[i].IsDone ? "[x]" : "[ ]";
+					Console.WriteLine($"Nr.{i + 1} {status} {todoList[i].TodoText}");
+				}
 			}
 
 			Console.Write("Zu löschende Nr.: ");
@@ -70,21 +83,31 @@ class Program
 			}
 			Console.ReadKey();
 		}
-		static void FinishTodo(List<TodoItem> todoList)
+		static void DoneTodo(List<TodoItem> todoList)
 		{
 			Console.Clear();
-			for (int i = 0; i < todoList.Count; i++)
+
+			var doneYetTodo = todoList.Where(x => !x.IsDone).ToList(); //unerledigte Todos anzeigen
+
+			if(doneYetTodo.Count == 0)
 			{
-				string status = todoList[i].IsDone ? "[x]" : "[ ]";
-				Console.WriteLine($"Nr.{i + 1} {status} {todoList[i].TodoText}");
+				Console.WriteLine("Keine ToDos");
 			}
+			foreach(TodoItem item in doneYetTodo)
+			{				
+				for (int i = 0; i < doneYetTodo.Count; i++)
+				{
+					Console.WriteLine($"Nr.{i + 1} [ ] {todoList[i].TodoText}");
+				}
+			}
+			
 			Console.Write("Erledigte Nr.: ");
 
 			if (int.TryParse(Console.ReadLine(), out int nummer))
 			{
-				if (nummer >= 1 && nummer <= todoList.Count)
+				if (nummer >= 1 && nummer <= doneYetTodo.Count)
 				{
-					todoList[nummer - 1].IsDone = true;
+					doneYetTodo[nummer - 1].IsDone = true;
 					SaveTodo(todoList);
 					Console.WriteLine("Todo wurde als erledigt markiert.");
 				}
@@ -97,14 +120,25 @@ class Program
 			{
 				Console.WriteLine("Bitte eine gültige Nummer eingeben.");
 			}
+
+			Console.ReadKey();
 		}
-		static void NotFinishTodo(List<TodoItem> todoList) 
+		static void DoneYetTodo(List<TodoItem> todoList) 
 		{
 			Console.Clear();
-			for (int i = 0; i < todoList.Count; i++)
+
+			var doneTodo = todoList.Where(x => x.IsDone).ToList(); // erledigte ToDos anzeigen
+
+			if(doneTodo.Count == 0)
 			{
-				string status = todoList[i].IsDone ? "[x]" : "[ ]";
-				Console.WriteLine($"Nr.{i + 1} {status} {todoList[i].TodoText}");
+				Console.WriteLine("Möchten Sie wieder machen?");
+			}
+			foreach(TodoItem item in doneTodo)
+			{
+				for (int i = 0; i < doneTodo.Count; i++)
+				{				
+					Console.WriteLine($"Nr.{i + 1} [x] {todoList[i].TodoText}");
+				}
 			}
 			Console.Write("Unerledigte Nr.: ");
 
@@ -125,32 +159,65 @@ class Program
 			{
 				Console.WriteLine("Bitte eine gültige Nummer eingeben.");
 			}
+			Console.ReadKey();
 		}
 		static void SaveTodo(List<TodoItem> todoList) //json serialize
 		{
-			string filePath = "todolist.json";
-
 			// Objekt -> string JsonSerializerOptions steurt das Serialisierungs-/Deserialisierungsverhalten von JSON
 			string json = JsonSerializer.Serialize(todoList, new JsonSerializerOptions
 			{
 				WriteIndented = true //white space
 			}); 
-			File.WriteAllText(filePath, json);
+			File.WriteAllText(FilePath, json);
 		}
 		static List<TodoItem> LoadTodo()
 		{
-			string filePath = "todolist.json";
 
-			if (!File.Exists(filePath))
+			if (!File.Exists(FilePath))
 			{
 				return new List<TodoItem>();
 			}
-			string json = File.ReadAllText(filePath);
 
-			List<TodoItem>? loadedList = JsonSerializer.Deserialize<List<TodoItem>>(json);
+			try
+			{
+				string json = File.ReadAllText(FilePath);
 
-			return loadedList ?? new List<TodoItem>();
+				List<TodoItem>? loadedList = JsonSerializer.Deserialize<List<TodoItem>>(json);
+
+				return loadedList ?? new List<TodoItem>();
+			}
+			catch 
+			{
+				Console.WriteLine("Die Datei konnte nicht geladen werden.");
+				Console.ReadKey();
+				return new List<TodoItem>();
+			}
 		}
+		static void ShowTodos(List<TodoItem> todoList)
+		{
+			if (todoList.Count == 0)
+			{
+				Console.WriteLine("Keine ToDos vorhanden.\n");
+				return;
+			}
+
+			//int doneCount = 0;
+
+			for (int i = 0; i < todoList.Count; i++)
+			{
+				string status = todoList[i].IsDone ? "[x]" : "[ ]";
+				Console.WriteLine($"Nr.{i + 1} {status} {todoList[i].TodoText}");
+			}
+
+			int doneCount = todoList.Count(x => x.IsDone);
+			int doneYetCount = todoList.Count(x => !x.IsDone); //LINQ Count
+
+			Console.WriteLine();
+			Console.WriteLine($"Erledigt:     {doneCount}");
+			Console.WriteLine($"Unerledigt:   {doneYetCount}");
+			
+		}
+		
 
 		while (start)
 		{
@@ -170,71 +237,49 @@ class Program
 					{
 						Console.Clear();
 						Console.WriteLine("== ToDo List anzeigen ==\n");
-						if (todoList.Count == 0)
+						
+						ShowTodos(todoList);
+
+						Console.WriteLine();
+						Console.WriteLine("=======================\n");
+						Console.WriteLine("1. ToDo hinzufügen\n");
+						Console.WriteLine("2. ToDo löschen\n");
+						Console.WriteLine("3. ToDo erledigt\n");
+						Console.WriteLine("4. ToDo unerledigt\n");
+						Console.WriteLine("0. zurück zum Menü\n");
+						Console.WriteLine("=======================");
+						Console.Write("Auswahl: ");
+
+						if(int.TryParse(Console.ReadLine(), out int auswahl1))
 						{
-
-							Console.WriteLine("Keine ToDos vorhanden...\n");
-
-							Console.WriteLine("1. ToDo hinzufügen\n");
-							Console.WriteLine("0. zurück zum Menü\n");
-							Console.Write("Auswahl: ");
-
-							int.TryParse(Console.ReadLine(), out int auswahl1);
-
-							Console.Clear();
-
 							if (auswahl1 == 1)
 							{
 								AddTodo(todoList);
 							}
-							else if (auswahl1 == 0)
-							{
-								Console.ReadKey();
-								break;
-							}
-						}
-						else if (todoList.Count > 0)
-						{
-							for (int i = 0; i < todoList.Count; i++) // Es ist besser, mit i zu rechnen.
-							{
-								string status = todoList[i].IsDone ? "[x]" : "[ ]";
-								Console.WriteLine($"Nr.{i + 1} {status} {todoList[i].TodoText}");
-							}
-
-							Console.WriteLine("1. ToDo hinzufügen\n");
-							Console.WriteLine("2. ToDo löschen\n");
-							Console.WriteLine("3. ToDo erledigt\n");
-							Console.WriteLine("4. ToDo unerledigt\n");
-							Console.WriteLine("0. zurück zum Menü\n");
-							Console.Write("Auswahl: ");
-
-							int.TryParse(Console.ReadLine(), out int auswahl2);
-
-							if (auswahl2 == 1)
-							{
-								AddTodo(todoList);
-							}
-							else if (auswahl2 == 2)
+							else if (auswahl1 == 2)
 							{
 								DeleteTodo(todoList);
 							}
-							else if (auswahl2 == 3)
+							else if (auswahl1 == 3)
 							{
-								FinishTodo(todoList);
+								DoneTodo(todoList);
 							}
-							else if (auswahl2 == 4)
+							else if (auswahl1 == 4)
 							{
-								NotFinishTodo(todoList);
+								DoneYetTodo(todoList);
 							}
-							else if (auswahl2 == 0)
+							else if (auswahl1 == 0)
 							{
 								break;
 							}
 							//ausgewälte Aufgabe anzeigen
 							//erldigt oder löschen
-
 						}
-
+						else
+						{
+							Console.WriteLine("Ungültige Eingabe.");
+							Console.ReadKey();
+						}
 					}
 				}
 				if (auswahl == 0)
