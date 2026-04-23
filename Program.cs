@@ -20,6 +20,30 @@ class Program
 		bool start = true;
 
 		// static // Gemeinsame Funktion, die keine Objektzustände, sondern Eingabewerte verarbeitet
+		static void ShowTodos(List<TodoItem> todoList)
+		{
+			if (todoList.Count == 0)
+			{
+				Console.WriteLine("Keine ToDos vorhanden.\n");
+				return;
+			}
+
+			//int doneCount = 0;
+
+			for (int i = 0; i < todoList.Count; i++)
+			{
+				string status = todoList[i].IsDone ? "[x]" : "[ ]";
+				Console.WriteLine($"Nr.{i + 1} {status} {todoList[i].TodoText}");
+			}
+
+			int doneCount = todoList.Count(x => x.IsDone);
+			int doneYetCount = todoList.Count(x => !x.IsDone); //LINQ Count
+
+			Console.WriteLine();
+			Console.WriteLine($"Erledigt:     {doneCount}");
+			Console.WriteLine($"Unerledigt:   {doneYetCount}");
+			
+		}
 		static void AddTodo(List<TodoItem> todoList) //Methode
 		{
 			Console.Clear();
@@ -93,13 +117,11 @@ class Program
 			{
 				Console.WriteLine("Keine ToDos");
 			}
-			foreach(TodoItem item in doneYetTodo)
-			{				
-				for (int i = 0; i < doneYetTodo.Count; i++)
-				{
-					Console.WriteLine($"Nr.{i + 1} [ ] {todoList[i].TodoText}");
-				}
+			for (int i = 0; i < doneYetTodo.Count; i++)
+			{
+				Console.WriteLine($"Nr.{i + 1} [ ] {todoList[i].TodoText}");
 			}
+			
 			
 			Console.Write("Erledigte Nr.: ");
 
@@ -133,13 +155,10 @@ class Program
 			{
 				Console.WriteLine("Möchten Sie wieder machen?");
 			}
-			foreach(TodoItem item in doneTodo)
-			{
-				for (int i = 0; i < doneTodo.Count; i++)
-				{				
-					Console.WriteLine($"Nr.{i + 1} [x] {todoList[i].TodoText}");
-				}
-			}
+			for (int i = 0; i < doneTodo.Count; i++)
+			{				
+				Console.WriteLine($"Nr.{i + 1} [x] {todoList[i].TodoText}");
+			}			
 			Console.Write("Unerledigte Nr.: ");
 
 			if (int.TryParse(Console.ReadLine(), out int nummer))
@@ -158,6 +177,39 @@ class Program
 			else
 			{
 				Console.WriteLine("Bitte eine gültige Nummer eingeben.");
+			}
+			Console.ReadKey();
+		}
+		static void SearchTodo(List<TodoItem> todoList)
+		{
+			Console.Clear();
+
+			Console.WriteLine("==== Suchen ====");
+
+			Console.Write("Suchen Sie ihre Todos: \n");
+			string suchwort = Console.ReadLine() ?? "";
+			var gefundeneTodo = todoList.Where(x => x.TodoText.Contains(suchwort, StringComparison.OrdinalIgnoreCase)).ToList();// A = a
+
+			Console.WriteLine("=======================");
+
+			if (string.IsNullOrWhiteSpace(suchwort))
+			{
+				Console.WriteLine("Bitte ein Suchwort eingeben");
+				Console.ReadKey();
+				return;
+			}
+
+			if (gefundeneTodo.Count == 0)
+			{
+				Console.WriteLine("keine passenden ToDos gefunden");
+			}
+			else
+			{
+				foreach (var todo in gefundeneTodo)
+				{
+					string status = todo.IsDone ? "[x]" : "[ ]";
+					Console.WriteLine($"{status} {todo.TodoText}");
+				}
 			}
 			Console.ReadKey();
 		}
@@ -193,30 +245,6 @@ class Program
 				return new List<TodoItem>();
 			}
 		}
-		static void ShowTodos(List<TodoItem> todoList)
-		{
-			if (todoList.Count == 0)
-			{
-				Console.WriteLine("Keine ToDos vorhanden.\n");
-				return;
-			}
-
-			//int doneCount = 0;
-
-			for (int i = 0; i < todoList.Count; i++)
-			{
-				string status = todoList[i].IsDone ? "[x]" : "[ ]";
-				Console.WriteLine($"Nr.{i + 1} {status} {todoList[i].TodoText}");
-			}
-
-			int doneCount = todoList.Count(x => x.IsDone);
-			int doneYetCount = todoList.Count(x => !x.IsDone); //LINQ Count
-
-			Console.WriteLine();
-			Console.WriteLine($"Erledigt:     {doneCount}");
-			Console.WriteLine($"Unerledigt:   {doneYetCount}");
-			
-		}
 		
 
 		while (start)
@@ -236,8 +264,8 @@ class Program
 					while (zumMenu) 
 					{
 						Console.Clear();
+												
 						Console.WriteLine("== ToDo List anzeigen ==\n");
-						
 						ShowTodos(todoList);
 
 						Console.WriteLine();
@@ -246,6 +274,7 @@ class Program
 						Console.WriteLine("2. ToDo löschen\n");
 						Console.WriteLine("3. ToDo erledigt\n");
 						Console.WriteLine("4. ToDo unerledigt\n");
+						Console.WriteLine("5. ToDo Suchen\n");
 						Console.WriteLine("0. zurück zum Menü\n");
 						Console.WriteLine("=======================");
 						Console.Write("Auswahl: ");
@@ -267,6 +296,10 @@ class Program
 							else if (auswahl1 == 4)
 							{
 								DoneYetTodo(todoList);
+							}
+							else if (auswahl1 == 5) 
+							{																	
+								SearchTodo(todoList);	
 							}
 							else if (auswahl1 == 0)
 							{
