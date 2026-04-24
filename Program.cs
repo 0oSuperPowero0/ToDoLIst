@@ -3,11 +3,7 @@ using System.Text.Json;
 
 namespace TodoList;
 
-//Struktur instabil aufgrund verschachtelter Schleifen -> while(auswahl == 1) never ending -> ture or false
-//Keine Überprüfung des Löschbereichs -> nummer >= 1 && nummer =< todoList.count
-//Leere Werte zulässig -> string.IsNullOrWhiteSpace
-//Fehler bei der Zahlenausgabe -> i
-//Doppelter Code -> Methode
+//24.04.2026 Bearbeiten hinzufügen.
 
 class Program
 {
@@ -25,6 +21,7 @@ class Program
 			if (todoList.Count == 0)
 			{
 				Console.WriteLine("Keine ToDos vorhanden.\n");
+				Console.ReadKey();
 				return;
 			}
 
@@ -49,21 +46,29 @@ class Program
 			Console.Clear();
 
 			Console.Write("Aufgabe: \n");
-			string aufgaben = Console.ReadLine() ?? "";
+			string aufgeben = Console.ReadLine() ?? "";
 			//Verhindern, dass leere Aufgaben in der Liste angezeigt werden.
-			if (string.IsNullOrWhiteSpace(aufgaben))
+			if (string.IsNullOrWhiteSpace(aufgeben))
 			{
 				Console.WriteLine("Leere Aufgaben sind nicht erlaubt.");
 			}
 			else
 			{
-				todoList.Add(new TodoItem
+				if(todoList.Any(a => a.TodoText.Equals(aufgeben, StringComparison.OrdinalIgnoreCase)))
 				{
-					TodoText = aufgaben,
-					IsDone = false
-				});
-				SaveTodo(todoList);
-				Console.WriteLine("ToDo wurde hinzugefügt.");
+					Console.WriteLine("Diese ToDo existiert bereits.");
+					Console.WriteLine("Bitte andere Aufgabe eingeben");
+				}
+				else
+				{
+					todoList.Add(new TodoItem
+					{
+						TodoText = aufgeben,
+						IsDone = false
+					});
+					SaveTodo(todoList);
+					Console.WriteLine("ToDo wurde hinzugefügt.");
+				}
 			}
 			Console.ReadKey();
 		}
@@ -115,11 +120,13 @@ class Program
 
 			if(doneYetTodo.Count == 0)
 			{
-				Console.WriteLine("Keine ToDos");
+				Console.WriteLine("Keine ToDos vorhanden.\n");
+				Console.ReadKey();
+				return;
 			}
 			for (int i = 0; i < doneYetTodo.Count; i++)
 			{
-				Console.WriteLine($"Nr.{i + 1} [ ] {todoList[i].TodoText}");
+				Console.WriteLine($"Nr.{i + 1} [ ] {doneYetTodo[i].TodoText}");
 			}
 			
 			
@@ -153,11 +160,13 @@ class Program
 
 			if(doneTodo.Count == 0)
 			{
-				Console.WriteLine("Möchten Sie wieder machen?");
+				Console.WriteLine("Keine ToDos vorhanden.\n");
+				Console.ReadKey();
+				return;
 			}
 			for (int i = 0; i < doneTodo.Count; i++)
 			{				
-				Console.WriteLine($"Nr.{i + 1} [x] {todoList[i].TodoText}");
+				Console.WriteLine($"Nr.{i + 1} [x] {doneTodo[i].TodoText}");
 			}			
 			Console.Write("Unerledigte Nr.: ");
 
@@ -165,7 +174,7 @@ class Program
 			{
 				if (nummer >= 1 && nummer <= todoList.Count)
 				{
-					todoList[nummer - 1].IsDone = false;
+					doneTodo[nummer - 1].IsDone = false;
 					SaveTodo(todoList);
 					Console.WriteLine("Todo wurde als unerledigt markiert.");
 				}
@@ -213,6 +222,81 @@ class Program
 			}
 			Console.ReadKey();
 		}
+		static void EditTodo(List<TodoItem> todoList) 
+		{
+			Console.Clear();
+			// Falls leer, Benachrichtigung ausgeben und zurückkehren
+			if (todoList.Count == 0) 
+			{
+				Console.WriteLine("Keine ToDos vorhanden.\n");
+				Console.ReadKey();
+				return;
+			}
+			// Liste ausgeben
+			ShowTodos(todoList);
+			// Nummer eingeben
+			Console.WriteLine();
+			Console.WriteLine("=================================\n");
+			Console.WriteLine("Bitte zu ändernde ToDo auswählen.");
+			Console.Write("Auswahl: ");
+
+			if (int.TryParse(Console.ReadLine(), out int nummer))
+			{
+				// Nummernkreis prüfen
+				if (nummer >= 1 && nummer <= todoList.Count)
+				{										
+					// Neue Todo eingeben
+					string alteTodo = todoList[nummer - 1].TodoText;
+					Console.WriteLine("=================================\n");
+					Console.WriteLine($"Bisherige Todo: {alteTodo}");
+					
+					Console.Write("Neue Todo: ");
+					
+					string neueTodo = Console.ReadLine() ?? "";
+					
+					// Auf leere String prüfen
+					if (string.IsNullOrWhiteSpace(neueTodo))
+					{
+						Console.WriteLine("Leere Aufgaben sind nicht erlaubt.");
+					}
+					else
+					{
+						// gleicher Wert check
+						if (alteTodo.Equals(neueTodo, StringComparison.OrdinalIgnoreCase))
+						{
+							Console.WriteLine("Dieselbe ToDo wurde erneut eingegeben.");
+							Console.WriteLine("Bitte andere Aufgabe eingeben.");
+						}
+						// Dupication check
+						else if (todoList.Any(e => e != todoList[nummer - 1] && 
+												   e.TodoText.Equals(neueTodo, StringComparison.OrdinalIgnoreCase)))
+						{
+							Console.WriteLine("Diese ToDo existiert bereits.");
+							Console.WriteLine("Bitte andere Aufgabe eingeben.");
+						}
+						else
+						{
+							// Bearbeiten																		
+							todoList[nummer - 1].TodoText = neueTodo;
+							// Speichern
+							Console.WriteLine($"{alteTodo} -> {neueTodo}");
+							SaveTodo(todoList);
+							Console.WriteLine("ToDo wurde geändert");
+						}
+					}					
+				}
+				else
+				{
+					Console.WriteLine("ungültige Nummer.");
+				}
+			}
+			else
+			{
+				Console.WriteLine("Bitte eine gültige Nummer eingeben.");
+			}
+			Console.ReadKey();
+
+		}
 		static void SaveTodo(List<TodoItem> todoList) //json serialize
 		{
 			// Objekt -> string JsonSerializerOptions steurt das Serialisierungs-/Deserialisierungsverhalten von JSON
@@ -245,6 +329,7 @@ class Program
 				return new List<TodoItem>();
 			}
 		}
+
 		
 
 		while (start)
@@ -260,8 +345,8 @@ class Program
 				Console.Clear();
 				if (auswahl == 1)
 				{
-					bool zumMenu = true;
-					while (zumMenu) 
+					
+					while (true) 
 					{
 						Console.Clear();
 												
@@ -275,6 +360,7 @@ class Program
 						Console.WriteLine("3. ToDo erledigt\n");
 						Console.WriteLine("4. ToDo unerledigt\n");
 						Console.WriteLine("5. ToDo Suchen\n");
+						Console.WriteLine("6. ToDo bearbeiten\n");
 						Console.WriteLine("0. zurück zum Menü\n");
 						Console.WriteLine("=======================");
 						Console.Write("Auswahl: ");
@@ -300,6 +386,10 @@ class Program
 							else if (auswahl1 == 5) 
 							{																	
 								SearchTodo(todoList);	
+							}
+							else if(auswahl1 == 6)
+							{
+								EditTodo(todoList);
 							}
 							else if (auswahl1 == 0)
 							{
