@@ -21,7 +21,6 @@ class Program
 			if (todoList.Count == 0)
 			{
 				Console.WriteLine("Keine ToDos vorhanden.\n");
-				Console.ReadKey();
 				return;
 			}
 
@@ -84,11 +83,7 @@ class Program
 			}
 			else
 			{
-				for (int i = 0; i < todoList.Count; i++)
-				{
-					string status = todoList[i].IsDone ? "[x]" : "[ ]";
-					Console.WriteLine($"Nr.{i + 1} {status} {todoList[i].TodoText}");
-				}
+				ShowTodos(todoList);
 			}
 
 			Console.Write("Zu löschende Nr.: ");
@@ -172,7 +167,7 @@ class Program
 
 			if (int.TryParse(Console.ReadLine(), out int nummer))
 			{
-				if (nummer >= 1 && nummer <= todoList.Count)
+				if (nummer >= 1 && nummer <= doneTodo.Count)
 				{
 					doneTodo[nummer - 1].IsDone = false;
 					SaveTodo(todoList);
