@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Text.Json;
 
-namespace TodoList;
+namespace ToDoList.ConsoleApp;
 
 //24.04.2026 Bearbeiten hinzufügen.
 
@@ -414,10 +414,4 @@ class Program
 			}
 		}
 	}
-}
-
-class TodoItem //List object
-{
-	public string TodoText { get; set; } = "";
-	public bool IsDone { get; set; } = false;
 }
