@@ -7,4 +7,11 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+<ItemGroup>
+	<Compile Remove="WpfApp\**\*.cs" />
+	<None Remove="WpfApp\**\*" />
+	<Page Remove="WpfApp\**\*.xaml" />
+	<ApplicationDefinition Remove="WpfApp\App.xaml" />
+</ItemGroup>
+
 </Project>

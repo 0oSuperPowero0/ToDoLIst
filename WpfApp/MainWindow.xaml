@@ -6,7 +6,53 @@
         xmlns:local="clr-namespace:WpfApp"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-    <Grid>
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   Text="ToDo Liste"
+                   FontSize="28"
+                   FontWeight="Bold"
+                   Margin="0,0,0,20"/>
+
+        <Grid Grid.Row="1"
+              Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="150"/>
+            </Grid.ColumnDefinitions>
+
+            <TextBox Grid.Column="0"
+                     Text="{Binding NewTodoText, UpdateSourceTrigger=PropertyChanged}"
+                     FontSize="16"
+                     Padding="8"/>
+            <Button Grid.Column="1"
+                    Content="Hinzufügen"
+                    Command="{Binding AddCommand}"
+                    FontSize="16"
+                    Padding="8"/>
+        </Grid>
+        <ListBox Grid.Row="2"
+                 ItemsSource="{Binding Todos}"
+                 SelectedItem="{Binding SelectedTodo}"
+                 FontSize="16">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal"
+                                Margin="4">
+                        <CheckBox IsChecked="{Binding IsDone}"
+                                  VerticalAlignment="Center"
+                                  Margin="0,0,10,0"/>
+                        <TextBlock Text="{Binding TodoText}"
+                                   VerticalAlignment="Center"/>
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
 
     </Grid>
 </Window>

@@ -15,10 +15,10 @@ namespace WpfApp.ViewModels;
 public class MainViewModel : INotifyPropertyChanged //ändern Daten auf dem Bildschirm
 {
 	//backing field
-	private string _newTodoText = "";
+	private string _newTodoText = string.Empty;
 	private TodoItem? _selectedTodo;
 
-	public ObservableCollection<TodoItem> Todos { get; } = new(); // statt List
+	public ObservableCollection<TodoItem> Todos { get; } = new(); // ListBox automatisch aktualisieren
 
 	//property
 	public string NewTodoText //Textbox
@@ -33,6 +33,11 @@ public class MainViewModel : INotifyPropertyChanged //ändern Daten auf dem Bild
 			{
 				_newTodoText = value;
 				OnPropertyChanged();
+
+				if(AddCommand is RelayCommand relayCommand)
+				{
+					relayCommand.RaiseCanExecuteChanged();
+				}
 			}
 		}
 	}
@@ -56,24 +61,28 @@ public class MainViewModel : INotifyPropertyChanged //ändern Daten auf dem Bild
 
 	public MainViewModel() 
 	{
-		AddCommand = new RelayCommands(AddTodo);
+		Todos = new ObservableCollection<TodoItem>();
+		AddCommand = new RelayCommand(AddTodo, CanAddTodo);
 	}
 
-	private void AddTodo()
+	private bool CanAddTodo(object? parameter)
 	{
-		if (string.IsNullOrWhiteSpace(NewTodoText))
-		{
-			return;
-		}
+		return !string.IsNullOrWhiteSpace(NewTodoText);
+	}
+
+	private void AddTodo(object? parameter)
+	{
+		string trimmedText = NewTodoText.Trim();
 
 		TodoItem newTodo = new TodoItem
 		{
-			TodoText = NewTodoText,
+			TodoText = trimmedText,
 			IsDone = false,
 		};
 
 		Todos.Add(newTodo);
-		NewTodoText = "";
+		SelectedTodo = newTodo;
+		NewTodoText = string.Empty;
 	} //function
 		public event PropertyChangedEventHandler? PropertyChanged; //notify
 		private void OnPropertyChanged([CallerMemberName] string? propertyName = null) //notification function
