@@ -1,17 +1,16 @@
-﻿
-using System.Windows.Input;
+﻿using System.Windows.Input;
 
 namespace WpfApp.Commands;
 
 // Zwischenlink wpf button -> Methode
-public class RelayCommand : ICommand
+public class RelayCommands : ICommand
 {
 	//field
 	private readonly Action _execute; 
 	private readonly Func<bool>? _canExecute; 
 
 	//Konstruktor
-	public RelayCommand (Action execute, Func<bool>? canExecute = null)
+	public RelayCommands (Action execute, Func<bool>? canExecute = null)
 	{
 		execute = _execute;
 		canExecute = _canExecute;

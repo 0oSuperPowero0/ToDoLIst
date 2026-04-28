@@ -8,6 +8,7 @@ namespace WpfApp.Models;
 
 public class TodoItem
 {
+	//auto property
 	public string TodoText { get; set; } = "";
 	public bool IsDone { get; set; } = false;
 }
